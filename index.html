@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой календарь месячных</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #fff9fb;
+        }
+        h1 {
+            color: #d23669;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .calendar-btn {
+            background-color: #f8bbd0;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .date-strip {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            width: 100%;
+            scrollbar-width: none;
+        }
+        .date-strip::-webkit-scrollbar {
+            display: none;
+        }
+        .date-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 50px;
+            padding: 10px 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .date-item.active {
+            background-color: #ffebee;
+            font-weight: bold;
+        }
+        .date-item.period {
+            background-color: #ffcdd2;
+        }
+        .day-name {
+            font-size: 12px;
+            color: #777;
+        }
+        .day-number {
+            font-size: 16px;
+            margin: 5px 0;
+            font-weight: bold;
+        }
+        .today-indicator {
+            font-size: 10px;
+            color: #d23669;
+            margin-top: 3px;
+        }
+        .main-circle {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffebee, #fce4ec);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            box-shadow: 0 8px 16px rgba(210, 54, 105, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .current-date {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        .cycle-info {
+            font-size: 16px;
+            margin: 10px 0;
+            text-align: center;
+            min-height: 40px;
+        }
+        .mark-button {
+            padding: 12px 25px;
+            background-color: #d23669;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .mark-button:hover {
+            background-color: #a52a52;
+            transform: scale(1.05);
+        }
+        .pain-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .pain-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 350px;
+            text-align: center;
+        }
+        .pain-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .pain-option {
+            padding: 12px;
+            border: 2px solid #f8bbd0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-basis: 40%;
+            text-align: center;
+        }
+        .pain-option:hover {
+            background-color: #ffebee;
+        }
+        .pain-option.selected {
+            background-color: #d23669;
+            color: white;
+            border-color: #d23669;
+        }
+        .close-pain {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .clear-all-section {
+            margin-top: 50px;
+            width: 100%;
+            text-align: center;
+            padding: 30px 0;
+        }
+        .clear-all-btn {
+            padding: 15px 30px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+        .clear-all-btn:hover {
+            background-color: #388e3c;
+            transform: scale(1.05);
+        }
+        .celebration {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(76, 175, 80, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+            animation: celebrationBg 2s infinite alternate;
+        }
+        @keyframes celebrationBg {
+            0% { background-color: rgba(76, 175, 80, 0.9); }
+            100% { background-color: rgba(106, 185, 110, 0.9); }
+        }
+        .celebration h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-15px); }
+        }
+        .celebration p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            max-width: 80%;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f44336;
+            opacity: 0;
+        }
+        .calendar-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .calendar-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .month-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 15px;
+        }
+        .calendar-day {
+            padding: 8px;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .calendar-day.period {
+            background-color: #ffcdd2;
+        }
+        .calendar-day.today {
+            font-weight: bold;
+            border: 2px solid #d23669;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+        .calendar-nav button {
+            background-color: #f8bbd0;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Мой календарь месячных</h1>
+    
+    <button class="calendar-btn" id="open-calendar">📅 Полный календарь</button>
+    
+    <div class="date-strip" id="date-strip">
+        <!-- Лента с датами будет сгенерирована JavaScript -->
+    </div>
+    
+    <div class="main-circle">
+        <div class="current-date" id="current-date"></div>
+        <div class="cycle-info" id="cycle-info"></div>
+        <button class="mark-button" id="mark-button">Отметить месячные</button>
+    </div>
+    
+    <div class="pain-modal" id="pain-modal">
+        <div class="pain-content">
+            <span class="close-pain">&times;</span>
+            <h3>Выберите уровень боли:</h3>
+            <div class="pain-options">
+                <div class="pain-option" data-level="0">Нет боли</div>
+                <div class="pain-option" data-level="1">Легкая</div>
+                <div class="pain-option" data-level="2">Умеренная</div>
+                <div class="pain-option" data-level="3">Умираю</div>
+                <div class="pain-option" data-level="4">Пиздец полный</div>
+            </div>
+            <button class="mark-button" id="save-pain">Сохранить</button>
+        </div>
+    </div>
+    
+    <div class="calendar-modal" id="calendar-modal">
+        <div class="calendar-content">
+            <div class="calendar-header">
+                <h3 id="calendar-month">Май 2023</h3>
+                <div class="calendar-nav">
+                    <button id="prev-month">&lt;</button>
+                    <button id="next-month">&gt;</button>
+                </div>
+            </div>
+            <div class="month-calendar" id="month-calendar">
+                <!-- Календарь будет сгенерирован JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="clear-all-section">
+        <button class="clear-all-btn" id="clear-all-btn">🎉Отменить месячные нахуй</button>
+    </div>
+    
+    <div class="celebration" id="celebration">
+        <h2>УРАААА!!!</h2>
+        <p>Ты наконец-то освободилась от этого! Иди обрадуй мужа!</p>
+        <p>Все отметки очищены!</p>
+        <!-- Конфетти будут сгенерированы JavaScript -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            let periodData = JSON.parse(localStorage.getItem('periodData')) || {};
+            let selectedDate = new Date();
+            let selectedPainLevel = 0;
+            let lastPeriodDate = getLastPeriodDate();
+            
+            // Инициализация интерфейса
+            updateCurrentDateDisplay();
+            renderDateStrip();
+            updateCycleInfo();
+            
+            // Кнопка открытия полного календаря
+            document.getElementById('open-calendar').addEventListener('click', function() {
+                showCalendarModal();
+            });
+            
+            // Выбор даты в ленте
+            document.getElementById('date-strip').addEventListener('click', function(e) {
+                const dateItem = e.target.closest('.date-item');
+                if (dateItem) {
+                    const dateStr = dateItem.getAttribute('data-date');
+                    selectedDate = new Date(dateStr);
+                    updateCurrentDateDisplay();
+                    renderDateStrip();
+                    updateCycleInfo();
+                }
+            });
+            
+            // Кнопка отметки месячных
+            document.getElementById('mark-button').addEventListener('click', function() {
+                if (isPeriodDay(selectedDate)) {
+                    // Если день уже отмечен, спрашиваем уровень боли
+                    showPainModal();
+                } else {
+                    // Отмечаем день как день месячных
+                    markAsPeriodDay(selectedDate);
+                    updateCycleInfo();
+                    renderDateStrip();
+                    showPainModal();
+                }
+            });
+            
+            // Выбор уровня боли
+            document.querySelectorAll('.pain-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.pain-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    selectedPainLevel = parseInt(this.getAttribute('data-level'));
+                });
+            });
+            
+            // Сохранение уровня боли
+            document.getElementById('save-pain').addEventListener('click', function() {
+                const dateKey = formatDate(selectedDate);
+                
+                if (!periodData[dateKey]) {
+                    periodData[dateKey] = {};
+                }
+                
+                periodData[dateKey].painLevel = selectedPainLevel;
+                localStorage.setItem('periodData', JSON.stringify(periodData));
+                
+                hidePainModal();
+                renderDateStrip();
+            });
+            
+            // Закрытие модального окна боли
+            document.querySelector('.close-pain').addEventListener('click', hidePainModal);
+            
+            // Кнопка очистки всех отметок
+            document.getElementById('clear-all-btn').addEventListener('click', function() {
+                if (confirm('Ты уверена, что хочешь ОТМЕНИТЬ месячные к хуям?')) {
+                    periodData = {};
+                    localStorage.setItem('periodData', JSON.stringify(periodData));
+                    lastPeriodDate = null;
+                    updateCycleInfo();
+                    renderDateStrip();
+                    showCelebration();
+                }
+            });
+            
+            // Навигация по календарю
+            document.getElementById('prev-month').addEventListener('click', function() {
+                currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() - 1);
+                renderMonthCalendar();
+            });
+            
+            document.getElementById('next-month').addEventListener('click', function() {
+                currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() + 1);
+                renderMonthCalendar();
+            });
+            
+            // Функции для работы с интерфейсом
+            function updateCurrentDateDisplay() {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('current-date').textContent = 
+                    selectedDate.toLocaleDateString('ru-RU', options);
+            }
+            
+            function updateCycleInfo() {
+                const cycleInfoEl = document.getElementById('cycle-info');
+                const dateKey = formatDate(selectedDate);
+                
+                if (periodData[dateKey]) {
+                    const painLevels = ["Нет боли", "Легкая", "Умеренная", "Умираю", "Пиздец полный"];
+                    const painText = periodData[dateKey].painLevel !== undefined ? 
+                        `Уровень боли: ${painLevels[periodData[dateKey].painLevel]}` : '';
+                    cycleInfoEl.innerHTML = `Сегодня день месячных<br>${painText}`;
+                } else {
+                    const daysUntil = calculateDaysUntilNextPeriod();
+                    if (daysUntil !== null) {
+                        cycleInfoEl.textContent = `До месячных: ${daysUntil} ${declOfNum(daysUntil, ['день', 'дня', 'дней'])}`;
+                    } else {
+                        cycleInfoEl.textContent = 'Отметь первый день месячных';
+                    }
+                }
+            }
+            
+            function renderDateStrip() {
+                const dateStrip = document.getElementById('date-strip');
+                dateStrip.innerHTML = '';
+                
+                const daysToShow = 14;
+                const startDate = new Date(today);
+                startDate.setDate(today.getDate() - 7);
+                
+                for (let i = 0; i < daysToShow; i++) {
+                    const currentDate = new Date(startDate);
+                    currentDate.setDate(startDate.getDate() + i);
+                    
+                    const dateItem = document.createElement('div');
+                    dateItem.className = 'date-item';
+                    dateItem.setAttribute('data-date', currentDate.toISOString());
+                    
+                    if (isSameDay(currentDate, today)) {
+                        dateItem.classList.add('active');
+                    }
+                    
+                    if (isSameDay(currentDate, selectedDate)) {
+                        dateItem.classList.add('active');
+                    }
+                    
+                    if (isPeriodDay(currentDate)) {
+                        dateItem.classList.add('period');
+                    }
+                    
+                    const dayName = document.createElement('div');
+                    dayName.className = 'day-name';
+                    dayName.textContent = getDayName(currentDate);
+                    
+                    const dayNumber = document.createElement('div');
+                    dayNumber.className = 'day-number';
+                    dayNumber.textContent = currentDate.getDate();
+                    
+                    dateItem.appendChild(dayName);
+                    dateItem.appendChild(dayNumber);
+                    
+                    if (isSameDay(currentDate, today)) {
+                        const todayIndicator = document.createElement('div');
+                        todayIndicator.className = 'today-indicator';
+                        todayIndicator.textContent = 'сегодня';
+                        dateItem.appendChild(todayIndicator);
+                    }
+                    
+                    dateStrip.appendChild(dateItem);
+                }
+                
+                const activeItem = dateStrip.querySelector('.date-item.active');
+                if (activeItem) {
+                    activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }
+            
+            function markAsPeriodDay(date) {
+                const dateKey = formatDate(date);
+                if (!periodData[dateKey]) {
+                    periodData[dateKey] = {};
+                }
+                periodData[dateKey].isPeriod = true;
+                localStorage.setItem('periodData', JSON.stringify(periodData));
+                lastPeriodDate = date;
+            }
+            
+            function isPeriodDay(date) {
+                const dateKey = formatDate(date);
+                return periodData[dateKey] && periodData[dateKey].isPeriod;
+            }
+            
+            function calculateDaysUntilNextPeriod() {
+                if (!lastPeriodDate) return null;
+                
+                // Средняя продолжительность цикла (можно сделать настраиваемой)
+                const cycleLength = 28;
+                const nextPeriodDate = new Date(lastPeriodDate);
+                nextPeriodDate.setDate(lastPeriodDate.getDate() + cycleLength);
+                
+                const diffTime = nextPeriodDate - selectedDate;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                return diffDays > 0 ? diffDays : 0;
+            }
+            
+            function getLastPeriodDate() {
+                let lastDate = null;
+                for (const dateKey in periodData) {
+                    if (periodData[dateKey].isPeriod) {
+                        const date = parseDate(dateKey);
+                        if (!lastDate || date > lastDate) {
+                            lastDate = date;
+                        }
+                    }
+                }
+                return lastDate;
+            }
+            
+            function showPainModal() {
+                const dateKey = formatDate(selectedDate);
+                if (periodData[dateKey] && periodData[dateKey].painLevel !== undefined) {
+                    selectedPainLevel = periodData[dateKey].painLevel;
+                    document.querySelectorAll('.pain-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                        if (parseInt(opt.getAttribute('data-level')) === selectedPainLevel) {
+                            opt.classList.add('selected');
+                        }
+                    });
+                } else {
+                    selectedPainLevel = 0;
+                    document.querySelectorAll('.pain-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    document.querySelector('.pain-option[data-level="0"]').classList.add('selected');
+                }
+                
+                document.getElementById('pain-modal').style.display = 'flex';
+            }
+            
+            function hidePainModal() {
+                document.getElementById('pain-modal').style.display = 'none';
+            }
+            
+            function showCelebration() {
+                const celebration = document.getElementById('celebration');
+                celebration.style.display = 'flex';
+                
+                // Создаем конфетти
+                for (let i = 0; i < 50; i++) {
+                    createConfetti();
+                }
+                
+                setTimeout(() => {
+                    celebration.style.display = 'none';
+                }, 5000);
+            }
+            
+            function createConfetti() {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                document.getElementById('celebration').appendChild(confetti);
+                
+                const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                confetti.style.backgroundColor = randomColor;
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = -10 + 'px';
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                
+                const animationDuration = Math.random() * 3 + 2;
+                
+                confetti.style.animation = `fall ${animationDuration}s linear forwards`;
+                
+                // Добавляем CSS для анимации
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    @keyframes fall {
+                        0% {
+                            opacity: 1;
+                            transform: translateY(0) rotate(0deg);
+                        }
+                        100% {
+                            opacity: 0;
+                            transform: translateY(100vh) rotate(360deg);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                    style.remove();
+                }, animationDuration * 1000);
+            }
+            
+            // Функции для полного календаря
+            let currentCalendarMonth = new Date();
+            
+            function showCalendarModal() {
+                currentCalendarMonth = new Date();
+                renderMonthCalendar();
+                document.getElementById('calendar-modal').style.display = 'flex';
+            }
+            
+            function renderMonthCalendar() {
+                const calendarEl = document.getElementById('month-calendar');
+                const monthYearEl = document.getElementById('calendar-month');
+                
+                calendarEl.innerHTML = '';
+                
+                // Устанавливаем заголовок месяца и года
+                const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+                                  "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+                monthYearEl.textContent = `${monthNames[currentCalendarMonth.getMonth()]} ${currentCalendarMonth.getFullYear()}`;
+                
+                // Добавляем заголовки дней недели
+                const dayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+                dayNames.forEach(day => {
+                    const dayHeader = document.createElement('div');
+                    dayHeader.style.fontWeight = 'bold';
+                    dayHeader.textContent = day;
+                    calendarEl.appendChild(dayHeader);
+                });
+                
+                // Получаем первый день месяца и количество дней в месяце
+                const firstDay = new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth(), 1);
+                const lastDay = new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                
+                // Получаем день недели первого дня месяца (0 - воскресенье, 1 - понедельник и т.д.)
+                let firstDayOfWeek = firstDay.getDay();
+                if (firstDayOfWeek === 0) firstDayOfWeek = 7; // Делаем воскресенье 7-м днем
+                
+                // Добавляем пустые ячейки для дней предыдущего месяца
+                for (let i = 1; i < firstDayOfWeek; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.className = 'calendar-day';
+                    calendarEl.appendChild(emptyDay);
+                }
+                
+                // Добавляем дни месяца
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'calendar-day';
+                    dayEl.textContent = day;
+                    
+                    const currentDate = new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth(), day);
+                    if (isPeriodDay(currentDate)) {
+                        dayEl.classList.add('period');
+                    }
+                    
+                    if (isSameDay(currentDate, today)) {
+                        dayEl.classList.add('today');
+                    }
+                    
+                    dayEl.addEventListener('click', function() {
+                        selectedDate = currentDate;
+                        updateCurrentDateDisplay();
+                        updateCycleInfo();
+                        renderDateStrip();
+                        document.getElementById('calendar-modal').style.display = 'none';
+                    });
+                    
+                    calendarEl.appendChild(dayEl);
+                }
+            }
+            
+            // Вспомогательные функции
+            function formatDate(date) {
+                const d = new Date(date);
+                let month = '' + (d.getMonth() + 1);
+                let day = '' + d.getDate();
+                const year = d.getFullYear();
+                
+                if (month.length < 2) month = '0' + month;
+                if (day.length < 2) day = '0' + day;
+                
+                return [year, month, day].join('-');
+            }
+            
+            function parseDate(dateStr) {
+                const parts = dateStr.split('-');
+                return new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+            
+            function getDayName(date) {
+                const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+                return days[date.getDay()];
+            }
+            
+            function isSameDay(date1, date2) {
+                return date1.getFullYear() === date2.getFullYear() &&
+                       date1.getMonth() === date2.getMonth() &&
+                       date1.getDate() === date2.getDate();
+            }
+            
+            function declOfNum(number, titles) {  
+                const cases = [2, 0, 1, 1, 1, 2];  
+                return titles[ (number%100>4 && number%100<20)? 2 : cases[(number%10<5)?number%10:5] ];  
+            }
+        });
+    </script>
+</body>
+</html>
