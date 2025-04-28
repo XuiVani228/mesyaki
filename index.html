@@ -469,7 +469,7 @@
             
             // Кнопка очистки всех отметок
             document.getElementById('clear-all-btn').addEventListener('click', function() {
-                if (confirm('Ты уверена, что хочешь отчистить календарь?')) {
+                if (confirm('Ты уверена, что хочешь ОТМЕНИТЬ месячные?')) {
                     periodData = {};
                     localStorage.setItem('periodData', JSON.stringify(periodData));
                     lastPeriodDate = null;
